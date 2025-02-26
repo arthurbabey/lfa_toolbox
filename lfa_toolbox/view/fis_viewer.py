@@ -2,6 +2,7 @@ from itertools import zip_longest, chain
 
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import savefig
+import numpy as np 
 
 from lfa_toolbox.core.fis.fis import FIS
 from lfa_toolbox.core.rules.default_fuzzy_rule import DefaultFuzzyRule
@@ -15,7 +16,6 @@ CONSEQUENTS_BACKGROUND_COLOR = "white"
 class FISViewer:
     def __init__(self, fis: FIS, figsize=None):
         self.__fis = fis
-
         self._has_predicted = self._get_has_predicted()
 
         n_default_rule = 1 if self.__fis.default_rule is not None else 0
@@ -25,26 +25,52 @@ class FISViewer:
 
         max_sum_ants_cons = max_ants + max_cons
         ncols = max_sum_ants_cons
-        nrows = n_rules + 1  # +1 row for aggregation
+        nrows = n_rules + 1  # extra row for aggregation
 
         if figsize is None:
             figsize = (3 * ncols, 2 * nrows)
 
-        fig, self._axarr = plt.subplots(ncols=ncols, nrows=nrows, figsize=figsize)
+        # Create a figure manually and add subplots so that for consequents columns
+        # (columns >= max_ants) in the main block (first nrows-1 rows), the axes share
+        # their x and y axes.
+        fig = plt.figure(figsize=figsize)
+        nrows_main = nrows - 1  # main block for rules
+        axes_main = np.empty((nrows_main, ncols), dtype=object)
+
+        for row in range(nrows_main):
+            for col in range(ncols):
+                subplot_index = row * ncols + col + 1  # subplot numbering starts at 1
+                if row == 0 or col < max_ants:
+                    # For the first row or for antecedents columns, create a normal subplot.
+                    ax = fig.add_subplot(nrows, ncols, subplot_index)
+                else:
+                    # For consequents columns (col >= max_ants) in subsequent rows,
+                    # share axes with the corresponding subplot in the first row.
+                    base_ax = axes_main[0, col]
+                    ax = fig.add_subplot(nrows, ncols, subplot_index,
+                                         sharex=base_ax, sharey=base_ax)
+                axes_main[row, col] = ax
+
+        # Create the aggregation row (last row)
+        axes_agg = []
+        agg_row_index = nrows - 1
+        for col in range(ncols):
+            subplot_index = agg_row_index * ncols + col + 1
+            ax = fig.add_subplot(nrows, ncols, subplot_index)
+            axes_agg.append(ax)
+        axes_agg = np.array(axes_agg).reshape(1, ncols)
+
+        # Combine the main block and aggregation row into one array
+        self._axarr = np.vstack([axes_main, axes_agg])
 
         if self._has_predicted:
             plt.suptitle(self._describe_fis())
 
-        # -1 because last line is for aggregation
-        for row in range(self._axarr.shape[0] - 1):
-            for col in range(max_ants, self._axarr.shape[1]):
-                a = self._axarr[row - 1, col]
-                b = self._axarr[row, col]
-                a.get_shared_x_axes().join(a, b)
-                a.get_shared_y_axes().join(a, b)
+        # Initially turn off all axes.
+        for ax in self._axarr.flat:
+            ax.axis("off")
 
-        [ax.axis("off") for ax in self._axarr.flat]
-
+        # Create rule plots for each rule (and the default rule, if present)
         for line, r in enumerate(chain(fis.rules, [fis.default_rule])):
             if r is not None:
                 self._create_rule_plot(
@@ -55,23 +81,22 @@ class FISViewer:
                     rule_index=line,
                 )
 
-        # all columns of consequents share the same x axe per column
+        # Set labels for rows and columns.
         self._plot_rows_cols_labels(self._axarr, max_ants, max_cons)
 
         if self._has_predicted:
+            # For consequents, use the aggregation row (last row)
             for cons_index, ax in enumerate(self._axarr[-1, max_ants:]):
                 self._plot_aggregation(cons_index, ax)
 
-        # show only the vertical label
+        # If a default rule exists, show only its vertical label.
         if self.__fis.default_rule is not None:
             ax_default_rule = self._axarr[-2, 0]
             ax_default_rule.axis("on")
             ax_default_rule.set_xticks([])
             ax_default_rule.set_yticks([])
-            ax_default_rule.spines["top"].set_visible(False)
-            ax_default_rule.spines["right"].set_visible(False)
-            ax_default_rule.spines["bottom"].set_visible(False)
-            ax_default_rule.spines["left"].set_visible(False)
+            for spine in ax_default_rule.spines.values():
+                spine.set_visible(False)
 
     def get_axarr(self):
         return self._axarr

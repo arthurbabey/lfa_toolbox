@@ -60,3 +60,36 @@ class LinPWMF(FreeShapeMF):
             mf_values.extend(ys)
 
         super(LinPWMF, self).__init__(in_values, mf_values)
+
+class LeftShoulderMF(LinPWMF):
+    def __init__(self, p0, p1, n_points=50):
+        big_left = p0 - 2
+        big_right = p1 + 2
+        super().__init__(
+            [big_left, 1],
+            [p0, 1],
+            [p1, 0],
+            [big_right, 0],
+            n_points=n_points
+        )
+
+class RightShoulderMF(LinPWMF):
+    def __init__(self, p0, p1, n_points=50):
+        big_left = p0 - 2
+        big_right = p1 + 2
+        super().__init__(
+            [big_left, 0],
+            [p0, 0],
+            [p1, 1],
+            [big_right, 1],
+            n_points=n_points
+        )
+
+class TriangularMF(LinPWMF):
+    def __init__(self, left, peak, right, n_points=50):
+        super().__init__(
+            [left, 0],
+            [peak, 1],
+            [right, 0],
+            n_points=n_points
+        )

@@ -52,6 +52,9 @@ class LinguisticVariable(metaclass=ABCMeta):
 
     def __str__(self):
         return "Name: {}, values: {}".format(self.name, self._ling_values_dict.keys())
+    
+    def __repr__(self):
+        return self.__str__()
 
     def _compute_in_range(self):
         min_max_pairs = [
