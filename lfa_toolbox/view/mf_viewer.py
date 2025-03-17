@@ -22,7 +22,7 @@ class MembershipFunctionViewer(Viewer):
         if isinstance(self._mf, SingletonMF):
             in_val = self._mf.in_values[0]
             mf_val = self._mf.mf_values[0]
-            self._ax.plot([in_val, in_val], [0, mf_val], "r", c=self._color)
+            self._ax.plot([in_val, in_val], [0, mf_val], c=self._color)
 
         self.get_plot(self._ax)
 
