@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lfa_toolbox"
+version = "0.2"
+description = "LFA Toolbox is an educational library to play with fuzzy systems"
+# "homepage" must go under [project.urls] in PEP 621
+authors = [
+  { name = "Gary Marigliano" }
+]
+readme = "README.md"
+license = { text = "GPL" }
+requires-python = ">=3.5"
+
+# Matches your old pinned requirements:
+dependencies = [
+  "numpy==1.14.0",
+  "matplotlib==2.1.1",
+  "pandas==0.22.0"
+]
+
+classifiers = [
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Programming Language :: Python :: 3"
+]
+
+[project.urls]
+Homepage = "http://iict-space.heig-vd.ch/cpn/"
+
+# This is like your old tests_require
+[project.optional-dependencies]
+test = [
+  "pytest==3.3.2"
+]
+
+# Tells setuptools to auto-discover 'lfa_toolbox/' as the package
+[tool.setuptools.packages.find]
+include = ["lfa_toolbox"]
+
+# Your old pytest config from setup.cfg
+[tool.pytest.ini_options]
+addopts = "--verbose"
+testpaths = ["tests"]
