@@ -64,7 +64,7 @@ class FISViewer:
         self._axarr = np.vstack([axes_main, axes_agg])
 
     #    if self._has_predicted:
-    #        plt.suptitle(self._describe_fis())
+            plt.suptitle(self._describe_fis())
 
         # Initially turn off all axes.
         for ax in self._axarr.flat:

@@ -63,8 +63,8 @@ class FISViewer:
         # Combine the main block and aggregation row into one array
         self._axarr = np.vstack([axes_main, axes_agg])
 
-    #    if self._has_predicted:
-    #        plt.suptitle(self._describe_fis())
+        if self._has_predicted:
+            plt.suptitle(self._describe_fis())
 
         # Initially turn off all axes.
         for ax in self._axarr.flat:
